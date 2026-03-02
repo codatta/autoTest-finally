@@ -7,7 +7,7 @@ import pytest
 @pytest.mark.full
 def test_get_user_info(client, auth_headers):
     """
-    发起 POST 请求到 /api/v2/user/get/user_info（body 为空），使用 auth_headers 提供 token。
+    发起 POST 请求到 /api/v2/user/get/user_info（body 为空），使用 auth_headers 提供   token。
     这个测试示例假设后端使用 header 名为 'token'（以及标准 Authorization: Bearer）。
     """
     # 使用 client（APIClient）和传入的 headers
