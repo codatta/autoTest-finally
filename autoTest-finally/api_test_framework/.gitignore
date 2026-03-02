@@ -1,0 +1,12 @@
+__pycache__/
+.venv/
+.env
+.reports/
+.pytest_cache/
+.idea/
+.vscode/
+
+# OS files
+Thumbs.db
+.DS_Store
+
