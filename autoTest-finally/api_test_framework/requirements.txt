@@ -1,8 +1,0 @@
-pytest
-requests
-python-dotenv
-pydantic
-pytest-html
-eth-account
-web3
-allure-pytest  # 添加 Allure pytest 插件，用于生成 allure 中间结果（allure-results）
