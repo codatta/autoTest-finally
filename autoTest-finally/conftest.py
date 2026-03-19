@@ -9,6 +9,7 @@ from core.auth import Auth
 from core.http_client import HttpClient
 from api.user import UserApi
 from api.frontier import FrontierApi
+from api.checkin import CheckInApi
 from config.settings import config
 
 
@@ -88,6 +89,14 @@ def frontier_api(client):
     获取Frontier API实例
     """
     return FrontierApi(client)
+
+
+@pytest.fixture(scope="session")
+def checkin_api(client):
+    """
+    获取签到API实例
+    """
+    return CheckInApi(client)
 
 
 @pytest.fixture

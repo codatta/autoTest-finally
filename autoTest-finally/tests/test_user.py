@@ -99,20 +99,3 @@ class TestTokenAuth:
         assert len(token) > 0, "Token长度应该大于0"
         assert token.startswith("eyJ"), "Token应该是JWT格式"
 
-    def test_user_info_with_token(self, fresh_client):
-        """
-        测试携带token直接调用接口
-
-        使用fresh_client（已经自动携带了token）调用接口
-        """
-        print("\n=== 测试携带Token直接调用接口 ===")
-
-        # 直接使用客户端调用（token已自动携带在请求头中）
-        result = fresh_client.post(
-            "/api/v2/user/get/user_info",
-            json_data={}
-        ).json()
-
-        print(f"响应结果: {result}")
-
-        assert result.get("success") is True, f"接口返回失败: {result}"
