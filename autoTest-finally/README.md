@@ -16,14 +16,17 @@ autoTest/
 │   └── signer.py       # Web3签名工具
 ├── api/                # API接口定义
 │   ├── __init__.py
-│   └── user.py         # 用户相关接口
+│   ├── user.py         # 用户相关接口
+│   └── frontier.py     # Frontier相关接口
 ├── tests/              # 测试用例
 │   ├── __init__.py
 │   ├── test_login.py   # 登录流程测试
-│   └── test_user.py    # 用户接口测试
+│   ├── test_user.py    # 用户接口测试
+│   └── test_frontier.py # Frontier接口测试
 ├── utils/              # 工具模块
 │   ├── __init__.py
 │   └── assertions.py   # 响应断言工具
+├── reports/            # 测试报告目录
 ├── conftest.py         # pytest配置
 ├── requirements.txt    # 依赖包
 ├── .env.example        # 环境变量示例
@@ -48,12 +51,22 @@ $env:BASE_URL="https://app-test.b18a.io"
 $env:PRIVATE_KEY="0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028"
 ```
 
-### 方式2: .env 文件
+### 方式2: .env 文件（推荐）
 
 复制 `.env.example` 为 `.env` 并修改配置：
 
 ```bash
 copy .env.example .env
+```
+
+然后编辑 `.env` 文件，配置以下参数：
+
+```env
+# 基础URL（线上环境用 https://app.codatta.io）
+BASE_URL=https://app-test.b18a.io
+
+# 钱包私钥
+PRIVATE_KEY=0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028
 ```
 
 ## 运行测试
@@ -82,8 +95,10 @@ pytest tests/test_login.py::TestLogin::test_login_flow -v
 
 ### 生成HTML报告
 
-```bash
-pytest --html=report.html --self-contained-html
+测试运行完成后，报告会自动生成到 `reports/` 目录下，文件名带时间戳：
+
+```
+reports/report_20250618_143025.html
 ```
 
 ### 并行执行
@@ -104,7 +119,8 @@ pytest -n auto  # 自动使用CPU核心数
 ### 2. Token自动管理
 
 - 登录接口自动获取token
-- Token在session级别共享，避免重复登录
+- Token在session级别共享，整个测试会话只登录一次
+- 如果token过期，HTTP客户端会自动重新登录并重试失败的请求
 - HTTP客户端自动携带token
 
 ### 3. Web3钱包支持
@@ -162,16 +178,22 @@ def test_example(example_api):
 
 ### Q: 如何切换测试环境？
 
+编辑 `.env` 文件或设置环境变量：
+
 ```bash
-$env:BASE_URL="https://app-prod.b18a.io"
-pytest
+# 测试环境
+BASE_URL=https://app-test.b18a.io
+
+# 生产环境
+BASE_URL=https://app.codatta.io
 ```
 
 ### Q: 如何使用新的私钥？
 
+编辑 `.env` 文件或设置环境变量：
+
 ```bash
-$env:PRIVATE_KEY="你的新私钥"
-pytest
+PRIVATE_KEY="你的新私钥"
 ```
 
 ### Q: 如何调试查看详细日志？
@@ -179,6 +201,14 @@ pytest
 ```bash
 pytest -s -v
 ```
+
+### Q: 报告生成在哪里？
+
+报告自动生成到 `reports/` 目录，文件名格式为 `report_YYYYMMDD_HHMMSS.html`
+
+### Q: .env 文件没有生效？
+
+确保 `.env` 文件在项目根目录下，且文件名正确（不是 `.env.txt` 或其他）
 
 ## License
 

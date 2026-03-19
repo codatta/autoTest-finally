@@ -12,39 +12,34 @@ from api.frontier import FrontierApi
 from config.settings import config
 
 
-# 设置环境变量（如果没有设置的话）
 def pytest_configure(config):
     """pytest启动时的配置"""
-    # 从环境变量读取私钥，如果没有则使用用户提供的私钥
+    # 1. 设置环境变量
     if not os.getenv("PRIVATE_KEY"):
         os.environ["PRIVATE_KEY"] = "0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028"
-
-    # 设置BASE_URL环境变量
     if not os.getenv("BASE_URL"):
         os.environ["BASE_URL"] = "https://app-test.b18a.io"
 
+    # 2. 自动添加HTML报告参数（如果未手动指定）
+    # 直接检查pytest-html插件的内置参数，不重复注册
+    html_path = config.getoption("--html")
+    if not html_path:
+        # 创建报告目录
+        report_dir = os.path.join(os.getcwd(), "reports")
+        os.makedirs(report_dir, exist_ok=True)
+        # 生成带时间戳的报告文件名
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        report_filename = f"report_{timestamp}.html"
+        report_path = os.path.join(report_dir, report_filename)
 
-def pytest_load_initial_conftests(early_config, parser, args):
-    """最早加载的conftest，设置报告路径"""
-    # 创建报告目录
-    report_dir = os.path.join(os.getcwd(), "reports")
-    os.makedirs(report_dir, exist_ok=True)
+        # 直接设置内置的html报告参数（避免重复注册）
+        setattr(config.option, 'htmlpath', report_path)
+        setattr(config.option, 'self_contained_html', True)  # 独立HTML
 
-    # 生成带时间戳的报告文件名
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_filename = f"report_{timestamp}.html"
-    report_path = os.path.join(report_dir, report_filename)
-
-    # 动态添加 --html 参数到命令行
-    if "--html" not in args:
-        args.append("--html")
-        args.append(report_path)
-
-    # 设置 self-contained-html
-    if "--self-contained-html" not in args:
-        args.append("--self-contained-html")
+        print(f"\n=== 报告将生成到: {report_path} ===\n")
 
 
+# 以下fixture代码保持不变
 @pytest.fixture(scope="session")
 def private_key():
     """获取私钥"""
