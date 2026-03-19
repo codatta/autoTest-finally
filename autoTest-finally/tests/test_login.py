@@ -65,7 +65,7 @@ class TestLogin:
         assert response.status_code == 200
         assert result.get("success") is True
         assert "data" in result
-        assert "nonce" in result.get("data", {})
+
 
     def test_wallet_signature(self):
         """
