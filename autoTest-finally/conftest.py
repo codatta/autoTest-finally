@@ -12,6 +12,34 @@ from api.frontier import FrontierApi
 from api.checkin import CheckInApi
 from config.settings import config
 
+# 报告保留数量
+MAX_REPORT_COUNT = 30
+
+def cleanup_old_reports(report_dir: str, max_count: int = MAX_REPORT_COUNT):
+    """
+    清理旧报告，只保留最新的N个报告
+
+    Args:
+        report_dir: 报告目录
+        max_count: 最大保留报告数量
+    """
+    if not os.path.exists(report_dir):
+        return
+
+    # 获取所有报告文件，按修改时间排序
+    report_files = [
+        os.path.join(report_dir, f)
+        for f in os.listdir(report_dir)
+        if f.endswith(".html")
+    ]
+    report_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+
+    # 删除超出数量的旧报告
+    if len(report_files) > max_count:
+        old_reports = report_files[max_count:]
+        for old_report in old_reports:
+            os.remove(old_report)
+            print(f"已删除旧报告: {os.path.basename(old_report)}")
 
 def pytest_configure(config):
     """pytest启动时的配置"""
@@ -38,7 +66,8 @@ def pytest_configure(config):
         setattr(config.option, 'self_contained_html', True)  # 独立HTML
 
         print(f"\n=== 报告将生成到: {report_path} ===\n")
-
+        # 清理旧报告
+        cleanup_old_reports(report_dir)
 
 # 以下fixture代码保持不变
 @pytest.fixture(scope="session")
