@@ -94,7 +94,7 @@ pytest tests/test_login.py::TestLogin::test_login_flow -v
 ```
 
 ### 生成HTML报告
-会循环删除旧的报告
+会循环删除旧的报告，保留31个文件
 测试运行完成后，报告会自动生成到 `reports/` 目录下，文件名带时间戳：
 
 ```
