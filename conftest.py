@@ -56,7 +56,7 @@ def pytest_collection_modifyitems(config, items):
     如果收集到 2 个及以上用例，说明是"批量执行"，最后才发邮件。
     """
     global _is_full_run
-    if len(items) >= 2:
+    if len(items) >= 5:
         _is_full_run = True
         print(f"\n📋 检测到批量执行（共 {len(items)} 个用例），测试结束后将发送邮件报告\n")
 
