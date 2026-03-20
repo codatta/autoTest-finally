@@ -22,6 +22,9 @@ class Config:
     # 域名配置
     BASE_URL = os.getenv("BASE_URL", "https://app-test.b18a.io")
 
+    # 报告配置
+    MAX_REPORT_COUNT = int(os.getenv("MAX_REPORT_COUNT", "30"))  # 报告保留数量
+
     # 区块链配置
     CHAIN_ID = os.getenv("CHAIN_ID", "56")  # BSC链
     CHAIN = os.getenv("CHAIN", "56")

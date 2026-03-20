@@ -20,3 +20,13 @@ class CheckInApi:
         """
         response = self.client.post("/api/v2/check-in/consult")
         return response.json()
+
+    def check_in(self) -> Dict[str, Any]:
+        """
+        执行签到操作
+
+        Returns:
+            API响应数据
+        """
+        response = self.client.post("/api/v2/check-in/check-in", json_data={})
+        return response.json()

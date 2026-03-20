@@ -146,21 +146,19 @@ class HttpClient:
     def post(
         self,
         path: str,
-        json_data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
-        **kwargs
+        json_data: Optional[Dict[str, Any]] = None,
     ) -> requests.Response:
         """POST请求"""
-        return self.request("POST", path, params=params, json_data=json_data, **kwargs)
+        return self.request("POST", path, params=params, json_data=json_data)
 
     def put(
         self,
         path: str,
         json_data: Optional[Dict[str, Any]] = None,
-        **kwargs
     ) -> requests.Response:
         """PUT请求"""
-        return self.request("PUT", path, json_data=json_data, **kwargs)
+        return self.request("PUT", path, json_data=json_data)
 
     def delete(self, path: str, **kwargs) -> requests.Response:
         """DELETE请求"""

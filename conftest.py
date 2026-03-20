@@ -10,14 +10,12 @@ from core.http_client import HttpClient
 from api.user import UserApi
 from api.frontier import FrontierApi
 from api.checkin import CheckInApi
-from config.settings import config
+from config.settings import Config
 
-# 报告保留数量
-MAX_REPORT_COUNT = 30
-
-def cleanup_old_reports(report_dir: str, max_count: int = MAX_REPORT_COUNT):
+def cleanup_old_reports(report_dir: str, max_count: int = None):
     """
     清理旧报告，只保留最新的N个报告
+
 
     Args:
         report_dir: 报告目录
@@ -67,7 +65,7 @@ def pytest_configure(config):
 
         print(f"\n=== 报告将生成到: {report_path} ===\n")
         # 清理旧报告
-        cleanup_old_reports(report_dir)
+        cleanup_old_reports(report_dir, Config.MAX_REPORT_COUNT)
 
 # 以下fixture代码保持不变
 @pytest.fixture(scope="session")

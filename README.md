@@ -74,7 +74,9 @@ PRIVATE_KEY=0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028
 ### 运行所有测试
 
 ```bash
-pytest
+pytest 
+or  
+python3 -m pytest
 ```
 
 ### 运行指定测试文件
