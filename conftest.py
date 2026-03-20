@@ -10,6 +10,7 @@ from core.http_client import HttpClient
 from api.user import UserApi
 from api.frontier import FrontierApi
 from api.checkin import CheckInApi
+from api.quest import QuestApi
 from config.settings import Config
 from utils.email_sender import EmailSender
 
@@ -242,6 +243,14 @@ def checkin_api(client):
     获取签到API实例
     """
     return CheckInApi(client)
+
+
+@pytest.fixture(scope="session")
+def quest_api(client):
+    """
+    获取Quest API实例
+    """
+    return QuestApi(client)
 
 
 @pytest.fixture
