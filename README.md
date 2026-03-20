@@ -85,6 +85,9 @@ python3 -m pytest
 # 运行登录测试
 pytest tests/test_login.py
 
+mac上面可能需要
+python3 -m pytest tests/test_user.py::TestUserApi::test_get_user_info -v -s
+
 # 运行用户接口测试
 pytest tests/test_user.py
 ```

@@ -2,6 +2,7 @@
 HTTP客户端模块
 封装requests库，提供简洁的API调用方式
 """
+import time
 import requests
 from typing import Optional, Dict, Any, Callable
 from config.settings import config
@@ -109,6 +110,9 @@ class HttpClient:
         url = f"{self.base_url}{path}"
         request_headers = self._get_headers(headers)
 
+        # 每次请求前等待 1 秒，避免频率限制
+        time.sleep(1)
+
         response = self.session.request(
             method=method,
             url=url,
@@ -126,7 +130,8 @@ class HttpClient:
                 self.token = new_token
                 self.set_token(new_token)
 
-                # 重新发送请求
+                # 重新发送请求前等待 1 秒
+                time.sleep(1)
                 request_headers = self._get_headers(headers)
                 response = self.session.request(
                     method=method,
