@@ -11,6 +11,15 @@ from api.user import UserApi
 from api.frontier import FrontierApi
 from api.checkin import CheckInApi
 from config.settings import Config
+from utils.email_sender import EmailSender
+
+# ---------------------------------------------------------------------------
+# 全局状态：判断是否"批量执行"（跑多个用例），单用例不发送邮件
+# ---------------------------------------------------------------------------
+_is_full_run = False
+_last_report_path = None
+_test_start_time = None
+_test_stats = {"passed": 0, "failed": 0, "total": 0}  # 记录测试结果
 
 def cleanup_old_reports(report_dir: str, max_count: int = None):
     """
@@ -39,8 +48,36 @@ def cleanup_old_reports(report_dir: str, max_count: int = None):
             os.remove(old_report)
             print(f"已删除旧报告: {os.path.basename(old_report)}")
 
+
+def pytest_collection_modifyitems(config, items):
+    """
+    收集完所有用例后调用。
+    如果收集到 2 个及以上用例，说明是"批量执行"，最后才发邮件。
+    """
+    global _is_full_run
+    if len(items) >= 2:
+        _is_full_run = True
+        print(f"\n📋 检测到批量执行（共 {len(items)} 个用例），测试结束后将发送邮件报告\n")
+
+
+def pytest_runtest_logreport(report):
+    """
+    每个测试用例执行完后都会调用，记录通过/失败数量。
+    """
+    global _test_stats
+    if report.when == "call":  # 只统计测试实际执行阶段，不统计 setup/teardown
+        _test_stats["total"] += 1
+        if report.passed:
+            _test_stats["passed"] += 1
+        elif report.failed:
+            _test_stats["failed"] += 1
+
 def pytest_configure(config):
     """pytest启动时的配置"""
+    global _test_start_time, _last_report_path
+
+    _test_start_time = datetime.now()
+
     # 1. 设置环境变量
     if not os.getenv("PRIVATE_KEY"):
         os.environ["PRIVATE_KEY"] = "0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028"
@@ -60,12 +97,93 @@ def pytest_configure(config):
         report_path = os.path.join(report_dir, report_filename)
 
         # 直接设置内置的html报告参数（避免重复注册）
-        setattr(config.option, 'htmlpath', report_path)
-        setattr(config.option, 'self_contained_html', True)  # 独立HTML
+        setattr(config.option, "htmlpath", report_path)
+        setattr(config.option, "self_contained_html", True)
+        _last_report_path = report_path
 
         print(f"\n=== 报告将生成到: {report_path} ===\n")
         # 清理旧报告
         cleanup_old_reports(report_dir, Config.MAX_REPORT_COUNT)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    所有测试执行完毕后的钩子。
+    仅在批量执行 + 邮件功能开启时才发送邮件。
+    """
+    global _is_full_run, _last_report_path, _test_start_time
+
+    # 单用例执行，不发邮件
+    if not _is_full_run:
+        return
+
+    # 邮件功能未启用
+    if not Config.EMAIL_ENABLED:
+        print("\n📧 邮件功能未启用（EMAIL_ENABLED=false），跳过发送邮件")
+        return
+
+    # 获取测试统计信息（从 pytest_runtest_logreport 记录的）
+    passed = _test_stats["passed"]
+    failed = _test_stats["failed"]
+    total = _test_stats["total"]
+
+    # 计算执行时长
+    duration_str = "N/A"
+    if _test_start_time:
+        delta = datetime.now() - _test_start_time
+        total_seconds = int(delta.total_seconds())
+        m, s = divmod(total_seconds, 60)
+        h, m = divmod(m, 60)
+        duration_str = f"{h}h {m}m {s}s" if h else f"{m}m {s}s"
+
+    # 找最新的 HTML 报告
+    report_path = _last_report_path
+    if not report_path or not os.path.exists(report_path):
+        report_dir = os.path.join(os.getcwd(), "reports")
+        if os.path.exists(report_dir):
+            files = [
+                os.path.join(report_dir, f)
+                for f in os.listdir(report_dir)
+                if f.endswith(".html")
+            ]
+            if files:
+                files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                report_path = files[0]
+
+    # 构建邮件内容
+    subject = f"🧪 测试报告 - {'全部通过 ✅' if failed == 0 else f'失败 {failed} 个 ❌'} ({datetime.now().strftime('%Y-%m-%d %H:%M')})"
+
+    sender = EmailSender(
+        host=Config.EMAIL_HOST,
+        port=Config.EMAIL_PORT,
+        user=Config.EMAIL_HOST_USER,
+        password=Config.EMAIL_HOST_PASSWORD,
+        use_tls=Config.EMAIL_USE_TLS,
+        from_name=Config.EMAIL_FROM or Config.EMAIL_HOST_USER,
+    )
+
+    html_body = sender.build_test_report_html(
+        report_path=report_path,
+        passed=passed,
+        failed=failed,
+        total=total,
+        duration=duration_str,
+    )
+
+    # 收件人列表（支持多个，逗号分隔）
+    to_list = [e.strip() for e in Config.EMAIL_TO.split(",") if e.strip()]
+
+    # 附件
+    attachments = [report_path] if report_path and os.path.exists(report_path) else []
+
+    print("\n" + "=" * 50)
+    sender.send(
+        to_emails=to_list,
+        subject=subject,
+        html_body=html_body,
+        attachments=attachments,
+    )
+    print("=" * 50)
 
 # 以下fixture代码保持不变
 @pytest.fixture(scope="session")

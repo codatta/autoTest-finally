@@ -25,6 +25,16 @@ class Config:
     # 报告配置
     MAX_REPORT_COUNT = int(os.getenv("MAX_REPORT_COUNT", "30"))  # 报告保留数量
 
+    # 邮件配置
+    EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")  # 发件人邮箱
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")  # 邮箱密码/授权码
+    EMAIL_FROM = os.getenv("EMAIL_FROM", "")  # 发件人名称
+    EMAIL_TO = os.getenv("EMAIL_TO", "")  # 收件人，多个用逗号分隔
+
     # 区块链配置
     CHAIN_ID = os.getenv("CHAIN_ID", "56")  # BSC链
     CHAIN = os.getenv("CHAIN", "56")
