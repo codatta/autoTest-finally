@@ -68,6 +68,7 @@ class Config:
     @classmethod
     def get_base_url(cls) -> str:
         """获取基础URL"""
+        print(f"基础URL: {cls.BASE_URL}")
         return cls.BASE_URL
 
     @classmethod

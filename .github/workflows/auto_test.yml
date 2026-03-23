@@ -1,0 +1,88 @@
+name: Auto Test
+
+on:
+  # push 到任意分支时执行
+  push:
+    branches:
+      - '**'
+  # 收到 pull request 时执行
+  pull_request:
+    branches:
+      - '**'
+  # 手动触发，可选择环境
+  workflow_dispatch:
+    inputs:
+      env:
+        description: '选择测试环境'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Determine environment
+        id: env
+        run: |
+          # 如果是手动触发，使用手动选择的环境
+          if [ "${{ github.event.inputs.env }}" != "" ]; then
+            echo "env=${{ github.event.inputs.env }}" >> $GITHUB_OUTPUT
+          else
+            # 根据分支名自动判断环境
+            BRANCH="${{ github.ref_name }}"
+            if [[ "$BRANCH" == *"prod"* ]]; then
+              echo "env=prod" >> $GITHUB_OUTPUT
+            elif [[ "$BRANCH" == *"dev"* ]]; then
+              echo "env=dev" >> $GITHUB_OUTPUT
+            else
+              echo "env=test" >> $GITHUB_OUTPUT
+            fi
+          fi
+          echo "当前环境: ${{ steps.env.outputs.env }}"
+
+      - name: Set environment URL
+        run: |
+          case "${{ steps.env.outputs.env }}" in
+            dev)
+              echo "BASE_URL=https://app-dev.b18a.io" >> $GITHUB_ENV
+              ;;
+            test)
+              echo "BASE_URL=https://app-test.b18a.io" >> $GITHUB_ENV
+              ;;
+            prod)
+              echo "BASE_URL=https://app.b18a.io" >> $GITHUB_ENV
+              ;;
+          esac
+          echo "测试环境: $BASE_URL"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          pytest tests/ -v --html=reports/report.html --self-contained-html
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ steps.env.outputs.env }}
+          path: reports/report.html
+          retention-days: 7
