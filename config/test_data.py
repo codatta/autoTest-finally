@@ -58,6 +58,34 @@ class FrontierTestData:
                 }
             }
         },
+        {
+            "case_name": "AIRDROP_KNOB测试",
+            "frontier_id": "8755128930300102590",
+            "task_id": "9513751347800105777",
+            "channel": "codatta-platform-website",
+            "submission_data": {
+                "task_id": "9513751347800105777",
+                "data_submission": {
+                    "taskId": "9513751347800105777",
+                    "templateId": "AIRDROP_KNOB",
+                    "data": {
+                        "original_image": "https://file.b18a.io/8478996582600109209_958803_.png",
+                        "original_image_hash": "76c3b6d62ad55461af39835966d1f93a6336ae356d940022c45f1c5b6c36f759",
+                        "annotated_image": "https://file.b18a.io/8478996582600109209_319302_.jpg",
+                        "annotated_image_hash": "463a94827cf0e9abe44dd7b3938366377e27730cc1c9c2e8d7ea8f0e39d600b9",
+                        "rect": {
+                            "x1": 503, "y1": 229,
+                            "x2": 778, "y2": 229,
+                            "x3": 778, "y3": 505,
+                            "x4": 503, "y4": 505,
+                            "center": {"x": 641, "y": 367}
+                        },
+                        "pointer_point": {"x": 584, "y": 336},
+                        "scale_value": "12112"
+                    }
+                }
+            }
+        },
     ]
 
     # 线上环境数据（支持多个测试用例）
