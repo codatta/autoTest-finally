@@ -19,8 +19,15 @@ class Config:
     # 环境配置
     ENV = os.getenv("TEST_ENV", "test")
 
-    # 域名配置
-    BASE_URL = os.getenv("BASE_URL", "https://app-test.b18a.io")
+    # 根据环境自动切换 BASE_URL
+    _env_base_urls = {
+        "test": "https://app-test.b18a.io",
+        "prod": "https://app.codatta.io",
+        "production": "https://app.codatta.io",
+        "online": "https://app.codatta.io",
+    }
+    # 优先使用环境变量中的 BASE_URL，否则根据 TEST_ENV 自动选择
+    BASE_URL = os.getenv("BASE_URL") or _env_base_urls.get(ENV.lower(), "https://app-test.b18a.io")
 
     # 报告配置
     MAX_REPORT_COUNT = int(os.getenv("MAX_REPORT_COUNT", "30"))  # 报告保留数量
