@@ -127,8 +127,10 @@ class TestFrontierApi:
                 print(f"✅ 找到提交记录: taskId={item_task_id}, 状态={item.get('status')}")
                 break
 
-        if not found:
-            print(f"⚠️ 未在历史记录中找到 taskId={task_id}，可能是提交未成功或数据格式不同")
-            print(f"   现有记录: {[str(i.get('taskId') or i.get('task_id')) for i in items]}")
+        # 断言：必须在历史记录中找到刚才提交的任务
+        assert found, (
+            f"未在历史记录中找到提交的任务 taskId={task_id}。"
+            f"提交响应: {submit_result}，现有记录: {[str(i.get('taskId') or i.get('task_id')) for i in items]}"
+        )
 
         print("✅ 场景测试完成：提交 → 查询 流程验证通过")
