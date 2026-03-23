@@ -53,10 +53,10 @@ $env:PRIVATE_KEY="0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41de
 
 ### 方式2: .env 文件（推荐）
 
-复制 `.env.example` 为 `.env` 并修改配置：
+不需要修改
 
 ```bash
-copy .env.example .env
+
 ```
 
 然后编辑 `.env` 文件，配置以下参数：
