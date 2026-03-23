@@ -3,6 +3,7 @@ Frontier接口测试
 """
 import pytest
 from api.frontier import FrontierApi
+from config.test_data import FrontierTestData
 
 
 class TestFrontierApi:
@@ -42,7 +43,8 @@ class TestFrontierApi:
         assert result.get("success") is True, f"接口返回失败: {result}"
         print("=== Frontier列表接口(带channel)测试通过 ===")
 
-    def test_submit_task_and_verify_in_history(self, frontier_api: FrontierApi):
+    @pytest.mark.parametrize("test_data", FrontierTestData.get_all_cases())
+    def test_submit_task_and_verify_in_history(self, frontier_api: FrontierApi, test_data):
         """
         【场景测试】提交任务 → 验证提交记录
 
@@ -54,27 +56,16 @@ class TestFrontierApi:
         验证:
         - 提交任务接口调用成功
         - 提交历史中能找到对应的记录
-        """
-        print("\n=== 【场景测试】提交任务 → 验证提交记录 ===")
 
-        # 示例提交数据（用实际接口能接收的字段）
-        task_id = "9455361516900105533"
-        frontier_id = "8755128930300102590"
-        submission_data = {
-            "taskId": task_id,
-            "templateId": "AIRDROP_BAD_CASE_ANALYSIS",
-            "data": {
-                "model": "gemini-2.0-flash",
-                "question": "测试问题",
-                "model_answer": "测试答案",
-                "model_answer_screenshots": [{
-                    "url": "https://file.b18a.io/388879687262208_997954_.png",
-                    "hash": "8a39f46f5d7e0393ee2d21fc3255b70d34ba48bbd6b2dae0354ad026c09138b4"
-                }],
-                "error_analysis": "测试分析",
-                "category": "programming"
-            }
-        }
+        测试数据: 从 config/test_data.py 根据环境配置读取，支持多用例
+        """
+        case_name = test_data.get("case_name", "未命名用例")
+        task_id = test_data["task_id"]
+        frontier_id = test_data["frontier_id"]
+        submission_data = test_data["submission_data"]
+
+        print(f"\n=== 【场景测试】提交任务 → 验证提交记录 | {case_name} ===")
+        print(f"当前测试数据: task_id={task_id}, frontier_id={frontier_id}")
 
         # --- 步骤 1: 提交任务 ---
         print("\n步骤1: 调用提交任务接口...")
@@ -133,4 +124,4 @@ class TestFrontierApi:
             f"提交响应: {submit_result}，现有记录: {[str(i.get('taskId') or i.get('task_id')) for i in items]}"
         )
 
-        print("✅ 场景测试完成：提交 → 查询 流程验证通过")
+        print(f"✅ 场景测试完成：{case_name} 验证通过")
