@@ -8,7 +8,8 @@
 autoTest/
 ├── config/              # 配置模块
 │   ├── __init__.py
-│   └── settings.py     # 配置管理
+│   ├── settings.py     # 配置管理
+│   └── test_data.py    # 测试数据配置
 ├── core/               # 核心模块
 │   ├── __init__.py
 │   ├── auth.py         # 认证管理（Web3登录）
@@ -17,16 +18,28 @@ autoTest/
 ├── api/                # API接口定义
 │   ├── __init__.py
 │   ├── user.py         # 用户相关接口
+│   ├── checkin.py      # 签到相关接口
+│   ├── quest.py        # 任务相关接口
 │   └── frontier.py     # Frontier相关接口
 ├── tests/              # 测试用例
-│   ├── __init__.py
-│   ├── test_login.py   # 登录流程测试
-│   ├── test_user.py    # 用户接口测试
-│   └── test_frontier.py # Frontier接口测试
+│   ├── api/            # 单个接口测试
+│   │   ├── test_login.py   # 登录认证接口
+│   │   ├── test_user.py    # 用户接口
+│   │   ├── test_checkin.py # 签到接口
+│   │   ├── test_quest.py   # 任务接口
+│   │   └── test_frontier.py # Frontier接口
+│   └── scenario/       # 场景测试
+│       ├── test_login_flow.py    # 登录流程场景
+│       ├── test_checkin_flow.py  # 签到流程场景
+│       └── test_submission_flow.py # 任务提交流景
 ├── utils/              # 工具模块
 │   ├── __init__.py
-│   └── assertions.py   # 响应断言工具
+│   ├── assertions.py   # 响应断言工具
+│   └── email_sender.py # 邮件发送工具
 ├── reports/            # 测试报告目录
+├── .github/
+│   └── workflows/      # GitHub Actions
+│       └── daily-test.yml # 定时执行工作流
 ├── conftest.py         # pytest配置
 ├── requirements.txt    # 依赖包
 ├── .env.example        # 环境变量示例
@@ -74,28 +87,54 @@ PRIVATE_KEY=0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028
 ### 运行所有测试
 
 ```bash
-pytest 
-or  
-python3 -m pytest
+pytest tests/ -v
+
 ```
 
-### 运行指定测试文件
+### 运行单个接口测试
 
 ```bash
-# 运行登录测试
-pytest tests/test_login.py
+# 运行 api 目录下所有单个接口测试
+pytest tests/api/ -v
 
-mac上面可能需要
-python3 -m pytest tests/test_user.py::TestUserApi::test_get_user_info -v -s
+# 运行登录接口测试
+pytest tests/api/test_login.py -v
 
 # 运行用户接口测试
-pytest tests/test_user.py
+pytest tests/api/test_user.py -v
+
+mac上面可能需要
+python3 -m pytest 
+
+```
+
+### 运行场景测试
+
+```bash
+# 运行 scenario 目录下所有场景测试
+pytest tests/scenario/ -v
+
+# 运行登录流程场景测试
+pytest tests/scenario/test_login_flow.py -v
+
+# 运行签到流程场景测试
+pytest tests/scenario/test_checkin_flow.py -v
+
+# 运行任务提交流程场景测试
+pytest tests/scenario/test_submission_flow.py -v
 ```
 
 ### 运行指定测试用例
 
 ```bash
-pytest tests/test_login.py::TestLogin::test_login_flow -v
+pytest tests/api/test_user.py::TestUserApi::test_get_user_info -v -s
+```
+
+### 运行冒烟测试
+
+```bash
+# 只运行登录相关测试
+pytest tests/ -v -k "login"
 ```
 
 ### 生成HTML报告
