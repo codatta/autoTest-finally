@@ -19,16 +19,16 @@ on:
           - smoke
 
   # 支持提交代码时触发（可选启用）
-  push:
-    branches:
-      - main
-    paths:
-      - 'tests/**'
-      - 'api/**'
-      - 'core/**'
-      - 'config/**'
-      - 'conftest.py'
-      - 'requirements.txt'
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - 'tests/**'
+#      - 'api/**'
+#      - 'core/**'
+#      - 'config/**'
+#      - 'conftest.py'
+#      - 'requirements.txt'
 
 jobs:
   api-test:
