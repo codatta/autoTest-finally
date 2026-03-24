@@ -1,12 +1,11 @@
 """
-Quest任务模块测试用例
+Quest任务接口测试用例 - 单个接口测试
 """
 import pytest
-from api.quest import QuestApi
 
 
 class TestQuestApi:
-    """Quest API测试类"""
+    """Quest API测试类 - 单个接口测试"""
 
     def test_get_task_categories(self, quest_api):
         """

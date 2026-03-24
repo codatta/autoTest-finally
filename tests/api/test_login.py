@@ -1,15 +1,15 @@
 """
-登录流程测试
+登录认证接口测试用例
 """
 import pytest
+import os
 from core.auth import Auth
 from core.http_client import HttpClient
-from api.user import UserApi
-from config.settings import config
+from core.signer import Web3Signer
 
 
-class TestLogin:
-    """登录流程测试类"""
+class TestLoginApi:
+    """登录API测试类 - 单个接口测试"""
 
     def test_login_flow(self):
         """
@@ -22,8 +22,11 @@ class TestLogin:
         """
         print("\n=== 测试完整登录流程 ===")
 
-        # 1. 创建Auth实例，使用提供的私钥
-        private_key = "0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028"
+        # 从环境变量获取私钥
+        private_key = os.getenv("PRIVATE_KEY")
+        assert private_key, "PRIVATE_KEY 环境变量未设置"
+
+        # 1. 创建Auth实例
         auth = Auth(private_key=private_key)
 
         # 2. 登录获取token
@@ -66,16 +69,16 @@ class TestLogin:
         assert result.get("success") is True
         assert "data" in result
 
-
     def test_wallet_signature(self):
         """
         测试签名功能
         """
         print("\n=== 测试钱包签名 ===")
 
-        from core.signer import Web3Signer
+        # 从环境变量获取私钥
+        private_key = os.getenv("PRIVATE_KEY")
+        assert private_key, "PRIVATE_KEY 环境变量未设置"
 
-        private_key = "0x40e68d7c277fbbd3399e7568011ec02cdb5f1009c1db15d883ef51bb41deb028"
         signer = Web3Signer(private_key)
 
         print(f"钱包地址: {signer.address}")

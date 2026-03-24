@@ -1,50 +1,19 @@
 """
-Frontier接口测试
+任务提交场景测试用例
+
+包含以下场景：
+- 提交任务后查询提交记录
+- 提交数据后查询提交的数据
 """
 import pytest
-from api.frontier import FrontierApi
 from config.test_data import FrontierTestData
 
 
-class TestFrontierApi:
-    """Frontier API测试类"""
-
-    def test_frontier_list(self, frontier_api: FrontierApi):
-        """
-        测试获取frontier列表接口
-        """
-        print("\n=== 测试Frontier列表接口 ===")
-        result = frontier_api.list(channel="")
-        print(f"响应结果: {result}")
-
-        # 允许接口超时（504）
-        if result.get("_status_code") == 504:
-            print("⚠️ 接口响应超时（504），跳过")
-            return
-
-        # 验证接口返回成功
-        assert result.get("success") is True, f"接口返回失败: {result}"
-        print("=== Frontier列表接口测试通过 ===")
-
-    def test_frontier_list_with_channel(self, frontier_api: FrontierApi):
-        """
-        测试带channel参数的frontier列表接口
-        """
-        print("\n=== 测试Frontier列表接口(带channel) ===")
-        result = frontier_api.list(channel="codatta-platform-website")
-        print(f"响应结果: {result}")
-
-        # 允许接口超时（504）
-        if result.get("_status_code") == 504:
-            print("⚠️ 接口响应超时（504），跳过")
-            return
-
-        # 验证接口返回成功
-        assert result.get("success") is True, f"接口返回失败: {result}"
-        print("=== Frontier列表接口(带channel)测试通过 ===")
+class TestSubmissionFlow:
+    """任务提交流程场景测试"""
 
     @pytest.mark.parametrize("test_data", FrontierTestData.get_all_cases())
-    def test_submit_task_and_verify_in_history(self, frontier_api: FrontierApi, test_data):
+    def test_submit_task_and_verify_in_history(self, frontier_api, test_data):
         """
         【场景测试】提交任务 → 验证提交记录
 

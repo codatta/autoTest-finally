@@ -2,11 +2,10 @@
 用户接口测试用例
 """
 import pytest
-from utils.assertions import ResponseAssert, assert_response
 
 
 class TestUserApi:
-    """用户API测试类"""
+    """用户API测试类 - 单个接口测试"""
 
     def test_get_user_info(self, user_api):
         """
@@ -98,4 +97,3 @@ class TestTokenAuth:
         assert token is not None, "Token不应该为空"
         assert len(token) > 0, "Token长度应该大于0"
         assert token.startswith("eyJ"), "Token应该是JWT格式"
-

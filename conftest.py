@@ -59,7 +59,7 @@ def pytest_collection_modifyitems(config, items):
     global _is_full_run
     if len(items) >= 5:
         _is_full_run = True
-        print(f"\n📋 检测到批量执行（共 {len(items)} 个用例），测试结束后将发送邮件报告\n")
+        print(f"\n[INFO] Detected batch execution ({len(items)} test cases), email report will be sent after test completion\n")
 
 
 def pytest_runtest_logreport(report):
@@ -123,7 +123,7 @@ def pytest_sessionfinish(session, exitstatus):
 
     # 邮件功能未启用
     if not Config.EMAIL_ENABLED:
-        print("\n📧 邮件功能未启用（EMAIL_ENABLED=false），跳过发送邮件")
+        print("\n[INFO] Email is not enabled (EMAIL_ENABLED=false), skip sending email")
         return
 
     # 获取测试统计信息（从 pytest_runtest_logreport 记录的）
@@ -157,7 +157,7 @@ def pytest_sessionfinish(session, exitstatus):
             report_path = None  # 明确赋值，避免后续报错
 
     # 构建邮件内容（提前处理report_path为空的情况）
-    subject = f"🧪 测试报告 - {'全部通过 ✅' if failed == 0 else f'失败 {failed} 个 ❌'} ({datetime.now().strftime('%Y-%m-%d %H:%M')})"
+    subject = f"Test Report - {'All Passed' if failed == 0 else f'{failed} Failed'} ({datetime.now().strftime('%Y-%m-%d %H:%M')})"
 
     sender = EmailSender(
         host=Config.EMAIL_HOST,
@@ -179,14 +179,14 @@ def pytest_sessionfinish(session, exitstatus):
         )
     except Exception as e:
         # 捕获报告构建失败的异常，避免脚本终止
-        print(f"\n⚠️  构建邮件报告失败: {str(e)}")
+        print(f"\n[WARNING] Failed to build email report: {str(e)}")
         # 生成降级的邮件内容
         html_body = f"""
         <h2>接口自动化测试报告</h2>
         <p>执行时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         <p>总用例数: {total} | 通过: {passed} | 失败: {failed}</p>
         <p>执行时长: {duration_str}</p>
-        <p>⚠️  测试报告文件生成失败，无法展示详情</p>
+        <p>[WARNING] Test report file generation failed, cannot display details</p>
         """
 
     # 收件人列表（支持多个，逗号分隔）
@@ -203,9 +203,9 @@ def pytest_sessionfinish(session, exitstatus):
             html_body=html_body,
             attachments=attachments,
         )
-        print("📧 测试报告邮件发送成功！")
+        print("[INFO] Test report email sent successfully!")
     except Exception as e:
-        print(f"❌ 邮件发送失败: {str(e)}")
+        print(f"[ERROR] Email sending failed: {str(e)}")
     print("=" * 50)
 
 # 以下fixture代码保持不变
