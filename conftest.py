@@ -26,12 +26,13 @@ def cleanup_old_reports(report_dir: str, max_count: int = None):
     """
     清理旧报告，只保留最新的N个报告
 
-
     Args:
         report_dir: 报告目录
         max_count: 最大保留报告数量
     """
+    # 先确保目录存在（新增：避免目录不存在时报错）
     if not os.path.exists(report_dir):
+        os.makedirs(report_dir, exist_ok=True)
         return
 
     # 获取所有报告文件，按修改时间排序
@@ -43,7 +44,7 @@ def cleanup_old_reports(report_dir: str, max_count: int = None):
     report_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
 
     # 删除超出数量的旧报告
-    if len(report_files) > max_count:
+    if max_count and len(report_files) > max_count:
         old_reports = report_files[max_count:]
         for old_report in old_reports:
             os.remove(old_report)
@@ -89,9 +90,11 @@ def pytest_configure(config):
     # 直接检查pytest-html插件的内置参数，不重复注册
     html_path = config.getoption("--html")
     if not html_path:
-        # 创建报告目录
-        report_dir = os.path.join(os.getcwd(), "reports")
+        # 创建报告目录（优化：明确拼接绝对路径，兼容不同执行环境）
+        report_dir = os.path.join(os.path.abspath(os.getcwd()), "reports")
+        # 强制创建目录（exist_ok=True：已存在时不报错）
         os.makedirs(report_dir, exist_ok=True)
+
         # 生成带时间戳的报告文件名
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         report_filename = f"report_{timestamp}.html"
@@ -137,21 +140,23 @@ def pytest_sessionfinish(session, exitstatus):
         h, m = divmod(m, 60)
         duration_str = f"{h}h {m}m {s}s" if h else f"{m}m {s}s"
 
-    # 找最新的 HTML 报告
+    # 找最新的 HTML 报告（优化：增加多层校验，避免None）
     report_path = _last_report_path
     if not report_path or not os.path.exists(report_path):
-        report_dir = os.path.join(os.getcwd(), "reports")
-        if os.path.exists(report_dir):
-            files = [
-                os.path.join(report_dir, f)
-                for f in os.listdir(report_dir)
-                if f.endswith(".html")
-            ]
-            if files:
-                files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                report_path = files[0]
+        report_dir = os.path.join(os.path.abspath(os.getcwd()), "reports")
+        os.makedirs(report_dir, exist_ok=True)  # 再次确保目录存在
+        files = [
+            os.path.join(report_dir, f)
+            for f in os.listdir(report_dir)
+            if f.endswith(".html")
+        ]
+        if files:
+            files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            report_path = files[0]
+        else:
+            report_path = None  # 明确赋值，避免后续报错
 
-    # 构建邮件内容
+    # 构建邮件内容（提前处理report_path为空的情况）
     subject = f"🧪 测试报告 - {'全部通过 ✅' if failed == 0 else f'失败 {failed} 个 ❌'} ({datetime.now().strftime('%Y-%m-%d %H:%M')})"
 
     sender = EmailSender(
@@ -163,27 +168,44 @@ def pytest_sessionfinish(session, exitstatus):
         from_name=Config.EMAIL_FROM or Config.EMAIL_HOST_USER,
     )
 
-    html_body = sender.build_test_report_html(
-        report_path=report_path,
-        passed=passed,
-        failed=failed,
-        total=total,
-        duration=duration_str,
-    )
+    # 新增：调用build_test_report_html前，先校验report_path
+    try:
+        html_body = sender.build_test_report_html(
+            report_path=report_path,
+            passed=passed,
+            failed=failed,
+            total=total,
+            duration=duration_str,
+        )
+    except Exception as e:
+        # 捕获报告构建失败的异常，避免脚本终止
+        print(f"\n⚠️  构建邮件报告失败: {str(e)}")
+        # 生成降级的邮件内容
+        html_body = f"""
+        <h2>接口自动化测试报告</h2>
+        <p>执行时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+        <p>总用例数: {total} | 通过: {passed} | 失败: {failed}</p>
+        <p>执行时长: {duration_str}</p>
+        <p>⚠️  测试报告文件生成失败，无法展示详情</p>
+        """
 
     # 收件人列表（支持多个，逗号分隔）
     to_list = [e.strip() for e in Config.EMAIL_TO.split(",") if e.strip()]
 
-    # 附件
-    attachments = [report_path] if report_path and os.path.exists(report_path) else []
+    # 附件（增加空值判断）
+    attachments = [report_path] if (report_path and os.path.exists(report_path)) else []
 
     print("\n" + "=" * 50)
-    sender.send(
-        to_emails=to_list,
-        subject=subject,
-        html_body=html_body,
-        attachments=attachments,
-    )
+    try:
+        sender.send(
+            to_emails=to_list,
+            subject=subject,
+            html_body=html_body,
+            attachments=attachments,
+        )
+        print("📧 测试报告邮件发送成功！")
+    except Exception as e:
+        print(f"❌ 邮件发送失败: {str(e)}")
     print("=" * 50)
 
 # 以下fixture代码保持不变
