@@ -48,13 +48,42 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements.txt
       
-      # 3. 安装依赖
+      # 3. 安装 Python 依赖
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
-      # 4. 配置环境变量（使用 GitHub Secrets）
+
+      # ========== 核心优化：缓存 Playwright 浏览器文件 ==========
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        id: playwright-cache  # 标记缓存ID，后续可判断是否命中缓存
+        with:
+          # Playwright 浏览器文件默认缓存路径（Linux/macOS）
+          path: ~/.cache/ms-playwright/
+          # 缓存Key：系统+playwright+依赖文件哈希（依赖变更才重新缓存）
+          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements.txt') }}
+          # 回退Key：匹配同系统的最新缓存（即使依赖变更也能复用旧缓存）
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      # ===========================================================
+
+      # 4. 安装 Playwright 及 Chromium 浏览器（命中缓存则跳过下载）
+      - name: Install Playwright and Chromium
+        run: |
+          # 打印缓存命中状态（方便调试）
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" == "true" ]; then
+            echo "✅ 命中 Playwright 浏览器缓存，跳过下载"
+          else
+            echo "🔄 未命中缓存，开始安装 Playwright 浏览器..."
+          fi
+          
+          # 安装浏览器（命中缓存时会自动跳过下载，仅验证安装）
+          playwright install chromium
+          # 安装系统依赖（Ubuntu 必需，缓存不包含系统库）
+          playwright install-deps chromium
+
+      # 5. 配置环境变量（使用 GitHub Secrets）
       - name: Configure environment
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
@@ -77,20 +106,23 @@ jobs:
             echo "EMAIL_HOST_PASSWORD=$EMAIL_HOST_PASSWORD" >> $GITHUB_ENV
             echo "EMAIL_TO=$EMAIL_TO" >> $GITHUB_ENV
           fi
-      
-      # 5. 执行测试
+
+      # 6. 执行测试
       - name: Run API tests
         run: |
+          # 创建报告目录（避免报告生成失败）
+          mkdir -p reports
+          
           # 根据手动选择的范围运行测试
           if [ "${{ github.event.inputs.test_scope }}" == "smoke" ]; then
             echo "运行 Smoke 测试..."
-            pytest tests/ -v --tb=short -k "login or checkin"
+            pytest tests/ -v --tb=short -k "login or checkin" --html=reports/smoke_report.html --self-contained-html
           else
             echo "运行完整测试..."
-            pytest tests/ -v --tb=short
+            pytest tests/ -v --tb=short --html=reports/full_report.html --self-contained-html
           fi
-      
-      # 6. 上传测试报告
+
+      # 7. 上传测试报告
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
@@ -98,8 +130,8 @@ jobs:
           name: test-report
           path: reports/*.html
           retention-days: 30
-      
-      # 7. 上传测试日志
+
+      # 8. 上传测试日志
       - name: Upload test logs
         if: always()
         uses: actions/upload-artifact@v4
