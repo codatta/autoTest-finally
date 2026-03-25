@@ -2,6 +2,8 @@
 用户接口测试用例
 """
 import pytest
+from core.http_client import HttpClient
+from api.user import UserApi
 
 
 class TestUserApi:
@@ -97,3 +99,32 @@ class TestTokenAuth:
         assert token is not None, "Token不应该为空"
         assert len(token) > 0, "Token长度应该大于0"
         assert token.startswith("eyJ"), "Token应该是JWT格式"
+    def test_access_without_token(self):
+        """
+        测试无Token访问需要登录的接口
+
+        前置条件：未登录、无Token
+
+        步骤：
+        1. 创建不带Token的HttpClient
+        2. 调用需要登录的用户信息接口
+
+        预期结果：返回401，错误信息：The JWT token is invalid. Please verify that the token is correct.
+        """
+        print("\n=== 测试无Token访问需要登录的接口 ===")
+
+        # 创建不带Token的客户端
+        client = HttpClient()
+        user_api = UserApi(client)
+
+        # 调用需要登录的接口
+        result = user_api.get_user_info()
+
+        print(f"响应结果: {result}")
+
+        # 断言：错误信息包含 token 相关提示
+        error_message = result.get("errorMessage", "")
+        assert "token" in error_message.lower() or "invalid" in error_message.lower(), \
+            f"错误信息应该包含token相关提示，实际: {error_message}"
+
+        print("=== 测试通过：无Token访问被正确拒绝 ===")

@@ -54,34 +54,34 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ========== 核心优化：缓存 Playwright 浏览器文件 ==========
-      - name: Cache Playwright browsers
-        uses: actions/cache@v3
-        id: playwright-cache  # 标记缓存ID，后续可判断是否命中缓存
-        with:
-          # Playwright 浏览器文件默认缓存路径（Linux/macOS）
-          path: ~/.cache/ms-playwright/
-          # 缓存Key：系统+playwright+依赖文件哈希（依赖变更才重新缓存）
-          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements.txt') }}
-          # 回退Key：匹配同系统的最新缓存（即使依赖变更也能复用旧缓存）
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-      # ===========================================================
-
-      # 4. 安装 Playwright 及 Chromium 浏览器（命中缓存则跳过下载）
-      - name: Install Playwright and Chromium
-        run: |
-          # 打印缓存命中状态（方便调试）
-          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" == "true" ]; then
-            echo "✅ 命中 Playwright 浏览器缓存，跳过下载"
-          else
-            echo "🔄 未命中缓存，开始安装 Playwright 浏览器..."
-          fi
-          
-          # 安装浏览器（命中缓存时会自动跳过下载，仅验证安装）
-          playwright install chromium
-          # 安装系统依赖（Ubuntu 必需，缓存不包含系统库）
-          playwright install-deps chromium
+#      # ========== 核心优化：缓存 Playwright 浏览器文件 ==========
+#      - name: Cache Playwright browsers
+#        uses: actions/cache@v3
+#        id: playwright-cache  # 标记缓存ID，后续可判断是否命中缓存
+#        with:
+#          # Playwright 浏览器文件默认缓存路径（Linux/macOS）
+#          path: ~/.cache/ms-playwright/
+#          # 缓存Key：系统+playwright+依赖文件哈希（依赖变更才重新缓存）
+#          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements.txt') }}
+#          # 回退Key：匹配同系统的最新缓存（即使依赖变更也能复用旧缓存）
+#          restore-keys: |
+#            ${{ runner.os }}-playwright-
+#      # ===========================================================
+#
+#      # 4. 安装 Playwright 及 Chromium 浏览器（命中缓存则跳过下载）
+#      - name: Install Playwright and Chromium
+#        run: |
+#          # 打印缓存命中状态（方便调试）
+#          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" == "true" ]; then
+#            echo "✅ 命中 Playwright 浏览器缓存，跳过下载"
+#          else
+#            echo "🔄 未命中缓存，开始安装 Playwright 浏览器..."
+#          fi
+#
+#          # 安装浏览器（命中缓存时会自动跳过下载，仅验证安装）
+#          playwright install chromium
+#          # 安装系统依赖（Ubuntu 必需，缓存不包含系统库）
+#          playwright install-deps chromium
 
       # 5. 配置环境变量（使用 GitHub Secrets）
       - name: Configure environment
