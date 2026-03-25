@@ -1,9 +1,4 @@
-我已经**直接在你现有文档里新增了「无Token / 无效Token访问接口」的统一用例**，包含：
-- 模块：用户模块（最适合放这个通用鉴权用例）
-- 明确返回 **401** + 你指定的错误信息
-- 格式完全对齐、可直接复制进你的 MD
 
-下面是**插入后完整、干净的 MD 文档**，你直接全选复制即可。
 
 # 接口自动化测试用例文档
 ## 文档信息
@@ -78,27 +73,25 @@
 | SCEN-LOGIN-002 | 登录流程（异常场景-非法私钥） | 1. 测试环境正常；2. 持有非法私钥 | 1. 获取nonce；2. 用非法私钥签名；3. 调用登录接口 | 登录失败，返回success=False，提示私钥非法 | 1. 登录接口success=False；2. 错误信息包含“私钥非法”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_invalid_private_key -v |
 | SCEN-LOGIN-003 | 登录流程（边界场景-过期nonce） | 1. 测试环境正常；2. 持有合法私钥；3. 获取过期nonce | 1. 使用过期nonce签名；2. 调用登录接口 | 登录失败，返回success=False，提示nonce过期 | 1. 登录接口success=False；2. 错误信息包含“nonce过期”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_expired_nonce -v |
 
----
 
 ### 6.2 签到场景测试
 路径：`tests/scenario/test_checkin_flow.py`
 
 | 用例编号 | 用例名称 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| SCEN-CHECKIN-001 | 签到流程（正常场景-未签到） | 1. 用户已登录；2. 当日未签到 | 1. 执行签到接口；2. 调用查询签到状态接口 | 签到成功，查询结果显示is_check_in=true | 1. 签到接口success=True；2. 查询接口success=True；3. is_check_in=true | pytest tests/scenario/test_checkin_flow.py::test_checkin_and_verify_status -v |
-| SCEN-CHECKIN-002 | 签到流程（异常场景-重复签到） | 1. 用户已登录；2. 当日已签到 | 1. 再次执行签到接口；2. 调用查询签到状态接口 | 签到失败，提示“今日已签到”，查询状态仍为is_check_in=true | 1. 签到接口success=False；2. 错误信息包含“今日已签到”；3. 查询接口is_check_in=true | pytest tests/scenario/test_checkin_flow.py::test_checkin_duplicate -v |
-| SCEN-CHECKIN-003 | 签到流程（异常场景-Token失效） | 1. 用户已登录但Token失效；2. 当日未签到 | 1. 执行签到接口 | 签到失败，返回success=False，提示Token失效 | 1. 签到接口success=False；2. 错误信息包含“Token失效”；3. 未完成签到 | pytest tests/scenario/test_checkin_flow.py::test_checkin_with_invalid_token -v |
+|----------|----------|----------|------|----------|--------|----------|
+| SCEN-CHECKIN-001 | 签到流程（正常场景 - 未签到） | 1. 用户已登录；2. 当日未签到 | 1. 查询签到状态，确认未签到；2. 执行签到接口；3. 再次查询签到状态 | 签到成功，查询结果显示 is_check_in=true | 1. 签到前状态 is_check_in=false；2. 签到接口 success=True；3. 签到后状态 is_check_in=true | pytest tests/scenario/test_checkin_flow.py::test_checkin_and_verify_status -v |
+| SCEN-CHECKIN-002 | 签到流程（异常场景 - 重复签到） | 1. 用户已登录；2. 当日已签到 | 1. 查询签到状态，确认已签到；2. 再次执行签到接口；3. 验证签到状态 | 签到失败，返回错误信息提示重复签到，签到状态保持已签到 | 1. 重复签到接口 success=False；2. 错误信息包含重复/已签到关键词；3. 签到状态保持 true | pytest tests/scenario/test_checkin_flow.py::test_checkin_duplicate -v |
 
 ---
+
 
 ### 6.3 任务提交场景测试
 路径：`tests/scenario/test_submission_flow.py`
 
-| 用例编号 | 用例名称 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| SCEN-SUBMIT-001 | 任务提交（正常场景-合法数据） | 1. 用户已登录，Token有效；2. 测试任务数据（task_id/frontier_id）已准备 | 1. 调用提交任务接口；2. 调用提交历史查询接口；3. 验证记录存在 | 提交成功，历史列表中包含本次提交的task_id | 1. 提交接口success=True；2. 历史查询success=True；3. 找到目标task_id | pytest tests/scenario/test_submission_flow.py::test_submit_task_and_verify_in_history -v |
-| SCEN-SUBMIT-002 | 任务提交（异常场景-无效task_id） | 1. 用户已登录，Token有效；2. 准备无效task_id | 1. 调用提交任务接口，传入无效task_id；2. 查看接口返回 | 提交失败，返回success=False，提示task_id无效 | 1. 提交接口success=False；2. 错误信息包含“task_id无效”；3. 历史记录无该提交 | pytest tests/scenario/test_submission_flow.py::test_submit_with_invalid_task_id -v |
-| SCEN-SUBMIT-003 | 任务提交（异常场景-重复提交） | 1. 用户已登录，Token有效；2. 已提交过该task_id | 1. 再次调用提交任务接口；2. 调用历史查询接口验证 | 提交失败，提示“重复提交”，历史记录仅存在1条该task_id记录 | 1. 提交接口success=False；2. 错误信息包含“重复提交”；3. 历史记录无新增 | pytest tests/scenario/test_submission_flow.py::test_submit_duplicate_task -v |
+| 用例编号 | 用例名称 | 前置条件 | 步骤 | 预期结果 | 断言点                                                                                  | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- |--------------------------------------------------------------------------------------| ---- |
+| SCEN-SUBMIT-001 | 任务提交（正常场景-合法数据） | 1. 用户已登录，Token有效；2. 测试任务数据（task_id/frontier_id）已准备 | 1. 调用提交任务接口；2. 调用提交历史查询接口；3. 验证记录存在 | 提交成功，历史列表中包含本次提交的task_id | 1. 提交接口success=True；2. 历史查询success=True；3. 找到目标task_id                               | pytest tests/scenario/test_submission_flow.py::test_submit_task_and_verify_in_history -v |
+| SCEN-SUBMIT-002 | 任务提交（异常场景-无效task_id） | 1. 用户已登录，Token有效；2. 准备无效task_id | 1. 调用提交任务接口，传入无效task_id；2. 查看接口返回 | 提交失败，返回success=False，提示task_id无效 | 1. 提交接口success=False；2. 错误信息包含“task is not exist”；3. 历史记录无该提交 4.返回的“errorCode”为6001, | pytest tests/scenario/test_submission_flow.py::test_submit_with_invalid_task_id -v |
 
 ---
 
@@ -115,11 +108,3 @@
 | SCEN-场景-序号 | 流程描述 | 1. xxx；2. xxx | 1. 执行xxx步骤；2. 执行xxx步骤；3. 验证结果 | 流程无异常，达到预期业务效果 | 1. 各接口success=True；2. 业务数据符合预期 | pytest tests/scenario/xxx.py::test_xxx -v |
 
 ---
-
-## 我新增的这条用例说明（你可直接使用）
-**用例编号**：API-USER-006
-**用例名称**：无Token访问需要登录的接口
-**预期结果**：固定返回你给的 401 错误信息
-**断言点**：状态码401 + 错误信息完全匹配
-
-如果你需要，我还能帮你把**签到、任务、Frontier 也各加一条无Token用例**。

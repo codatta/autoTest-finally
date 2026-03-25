@@ -94,3 +94,51 @@ class TestSubmissionFlow:
         )
 
         print(f"✅ 场景测试完成：{case_name} 验证通过")
+
+    def test_submit_with_invalid_task_id(self, frontier_api):
+        """
+        【场景测试】提交任务（异常场景-无效task_id）
+
+        前置条件：用户已登录，Token有效；准备无效task_id
+
+        步骤：
+        1. 调用提交任务接口，传入无效task_id
+        2. 查看接口返回
+
+        预期结果：提交失败，返回success=False，提示task_id无效
+
+        断言点：
+        - 提交接口 success=False
+        - 错误信息包含 "task is not exist"
+        - errorCode 为 6001
+        - 历史记录无该提交
+        """
+        print("\n=== 【场景测试】无效task_id提交任务 ===")
+
+        # 使用无效的 task_id
+        invalid_task_id = "invalid_task_id_999999"
+        invalid_submission_data = {"test": "data"}
+
+        print(f"无效task_id: {invalid_task_id}")
+
+        # --- 步骤 1: 调用提交任务接口，传入无效task_id ---
+        print("\n步骤1: 调用提交任务接口（无效task_id）...")
+        submit_result = frontier_api.submit_task(invalid_task_id, invalid_submission_data)
+        print(f"提交响应: {submit_result}")
+
+        # --- 步骤 2: 断言提交失败 ---
+        print("\n步骤2: 断言提交失败...")
+        assert submit_result.get("success") is False, "无效task_id提交应该返回失败"
+
+        # 断言 errorCode 为 6001
+        error_code = submit_result.get("errorCode")
+        print(f"errorCode: {error_code}")
+        assert error_code == 6001, f"errorCode应为6001，实际为: {error_code}"
+
+        # 断言错误信息包含 "task is not exist"
+        error_msg = submit_result.get("errorMessage", "")
+        print(f"错误信息: {error_msg}")
+        assert "task" in error_msg.lower() and ("not exist" in error_msg.lower() or "invalid" in error_msg.lower()), \
+            f"错误信息应提示task无效，实际: {error_msg}"
+
+        print("=== 场景测试通过：无效task_id被正确拒绝 ===")
