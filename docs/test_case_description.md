@@ -12,54 +12,54 @@
 ## 1. 登录模块（单接口测试）
 路径：`tests/api/test_login.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| API-LOGIN-001 | 登录流程（私钥登录获取Token） | ✅ 已实现 | 1. 测试环境正常；2. 持有合法私钥 | 1. 调用Nonce接口获取随机数；2. 钱包签名；3. 调用登录接口获取Token；4. 验证用户信息 | 登录成功，返回success=True，data包含有效Token和用户信息 | 1. 响应不为None；2. success=True；3. data包含token字段 | pytest tests/api/test_login.py::test_login_flow -v |
-| API-LOGIN-002 | 获取登录随机数（Nonce接口） | ✅ 已实现 | 1. 测试环境接口可访问 | 1. 调用Nonce接口 | 返回success=True，包含有效nonce随机数 | 1. 响应不为None；2. success=True；3. 包含nonce字段 | pytest tests/api/test_login.py::test_nonce_api -v |
-| API-LOGIN-003 | 钱包签名功能测试 | ✅ 已实现 | 1. 持有合法私钥；2. 获取有效nonce | 1. 调用钱包签名接口，传入私钥和nonce | 签名成功，返回合法签名信息 | 1. 响应不为None；2. 签名信息格式正确 | pytest tests/api/test_login.py::test_wallet_signature -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| API-LOGIN-001 | 登录流程（私钥登录获取Token） | P0 | ✅ 已实现 | 1. 测试环境正常；2. 持有合法私钥 | 1. 调用Nonce接口获取随机数；2. 钱包签名；3. 调用登录接口获取Token；4. 验证用户信息 | 登录成功，返回success=True，data包含有效Token和用户信息 | 1. 响应不为None；2. success=True；3. data包含token字段 | pytest tests/api/test_login.py::test_login_flow -v |
+| API-LOGIN-002 | 获取登录随机数（Nonce接口） | P0 | ✅ 已实现 | 1. 测试环境接口可访问 | 1. 调用Nonce接口 | 返回success=True，包含有效nonce随机数 | 1. 响应不为None；2. success=True；3. 包含nonce字段 | pytest tests/api/test_login.py::test_nonce_api -v |
+| API-LOGIN-003 | 钱包签名功能测试 | P0 | ✅ 已实现 | 1. 持有合法私钥；2. 获取有效nonce | 1. 调用钱包签名接口，传入私钥和nonce | 签名成功，返回合法签名信息 | 1. 响应不为None；2. 签名信息格式正确 | pytest tests/api/test_login.py::test_wallet_signature -v |
 
 ---
 
 ## 2. 用户模块（单接口测试）
 路径：`tests/api/test_user.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| API-USER-001 | 获取用户基本信息 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取用户信息接口 | 返回success=True，data包含用户ID、昵称等核心信息 | 1. 响应不为None；2. success=True；3. data包含user_id字段 | pytest tests/api/test_user.py::test_get_user_info -v |
-| API-USER-002 | 获取用户详细资料 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取用户资料接口 | 返回success=True，data包含用户详细资料（如头像、简介） | 1. 响应不为None；2. success=True；3. data包含profile字段 | pytest tests/api/test_user.py::test_get_profile -v |
-| API-USER-003 | 获取用户余额（积分/代币） | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取用户余额接口 | 返回success=True，data包含用户积分/代币余额 | 1. 响应不为None；2. success=True；3. data包含balance字段 | pytest tests/api/test_user.py::test_get_balance -v |
-| API-USER-004 | 获取用户钱包信息 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取钱包信息接口 | 返回success=True，包含钱包地址、连接状态 | 1. 响应不为None；2. success=True；3. 包含wallet_address字段 | pytest tests/api/test_user.py::test_get_wallet_info -v |
-| API-USER-005 | Token有效性验证 | ✅ 已实现 | 1. 已获取登录Token | 1. 调用Token验证接口，传入Token | 返回success=True，验证Token有效 | 1. 响应不为None；2. success=True；3. 提示Token有效 | pytest tests/api/test_user.py::test_token_exists -v |
-| API-USER-006 | 无Token访问需要登录的接口 | ✅ 已实现 | 1. 测试环境正常；2. 未登录、无Token | 1. 调用需要登录的用户信息接口；2. 不携带任何Token | 返回401，错误信息：{"errorMessage": "The JWT token is invalid. Please verify that the token is correct."} | 1. 响应状态码=401；2. 返回指定errorMessage；3. 未返回用户数据 | pytest tests/api/test_user.py::test_access_without_token -v |
-| API-USER-007 | 修改用户名 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 查询当前用户名；2. 生成随机十位数字用户名；3. 修改用户名为随机十位数字；4. 再次查询验证修改成功 | 修改成功，新用户名生效 | 1. 查询接口success=True；2. 修改接口success=True；3. 修改后查询到新用户名 | pytest tests/api/test_user.py::test_update_username -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| API-USER-001 | 获取用户基本信息 | P0 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取用户信息接口 | 返回success=True，data包含用户ID、昵称等核心信息 | 1. 响应不为None；2. success=True；3. data包含user_id字段 | pytest tests/api/test_user.py::test_get_user_info -v |
+| API-USER-002 | 获取用户详细资料 | P1 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取用户资料接口 | 返回success=True，data包含用户详细资料（如头像、简介） | 1. 响应不为None；2. success=True；3. data包含profile字段 | pytest tests/api/test_user.py::test_get_profile -v |
+| API-USER-003 | 获取用户余额（积分/代币） | P0 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取用户余额接口 | 返回success=True，data包含用户积分/代币余额 | 1. 响应不为None；2. success=True；3. data包含balance字段 | pytest tests/api/test_user.py::test_get_balance -v |
+| API-USER-004 | 获取用户钱包信息 | P1 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取钱包信息接口 | 返回success=True，包含钱包地址、连接状态 | 1. 响应不为None；2. success=True；3. 包含wallet_address字段 | pytest tests/api/test_user.py::test_get_wallet_info -v |
+| API-USER-005 | Token有效性验证 | P0 | ✅ 已实现 | 1. 已获取登录Token | 1. 调用Token验证接口，传入Token | 返回success=True，验证Token有效 | 1. 响应不为None；2. success=True；3. 提示Token有效 | pytest tests/api/test_user.py::test_token_exists -v |
+| API-USER-006 | 无Token访问需要登录的接口 | P0 | ✅ 已实现 | 1. 测试环境正常；2. 未登录、无Token | 1. 调用需要登录的用户信息接口；2. 不携带任何Token | 返回401，错误信息：{"errorMessage": "The JWT token is invalid. Please verify that the token is correct."} | 1. 响应状态码=401；2. 返回指定errorMessage；3. 未返回用户数据 | pytest tests/api/test_user.py::test_access_without_token -v |
+| API-USER-007 | 修改用户名 | P1 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 查询当前用户名；2. 生成随机十位数字用户名；3. 修改用户名为随机十位数字；4. 再次查询验证修改成功 | 修改成功，新用户名生效 | 1. 查询接口success=True；2. 修改接口success=True；3. 修改后查询到新用户名 | pytest tests/api/test_user.py::test_update_username -v |
 
 ---
 
 ## 3. 签到模块（单接口测试）
 路径：`tests/api/test_checkin.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| API-CHECKIN-001 | 查询当日签到状态 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用查询签到状态接口 | 返回success=True，包含当日是否已签到、累计签到天数 | 1. 响应不为None；2. success=True；3. 包含is_check_in、total_days字段 | pytest tests/api/test_checkin.py::test_consult_today_checkin_status -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| API-CHECKIN-001 | 查询当日签到状态 | P0 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用查询签到状态接口 | 返回success=True，包含当日是否已签到、累计签到天数 | 1. 响应不为None；2. success=True；3. 包含is_check_in、total_days字段 | pytest tests/api/test_checkin.py::test_consult_today_checkin_status -v |
 
 ---
 
 ## 4. 任务模块（单接口测试）
 路径：`tests/api/test_quest.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| API-QUEST-001 | 获取所有任务分类 | ✅ 已实现 | 1. 测试环境接口可访问 | 1. 调用获取任务分类接口 | 返回success=True，data包含所有任务分类列表 | 1. 响应不为None；2. success=True；3. data为列表格式 | pytest tests/api/test_quest.py::test_get_task_categories -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| API-QUEST-001 | 获取所有任务分类 | P1 | ✅ 已实现 | 1. 测试环境接口可访问 | 1. 调用获取任务分类接口 | 返回success=True，data包含所有任务分类列表 | 1. 响应不为None；2. success=True；3. data为列表格式 | pytest tests/api/test_quest.py::test_get_task_categories -v |
 
 ---
 
 ## 5. Frontier模块（单接口测试）
 路径：`tests/api/test_frontier.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| API-FRONTIER-001 | 获取Frontier项目列表 | ✅ 已实现 | 1. 测试环境接口可访问 | 1. 调用获取Frontier列表接口 | 返回success=True，data包含所有Frontier项目列表 | 1. 响应不为None；2. success=True；3. data为列表格式 | pytest tests/api/test_frontier.py::test_frontier_list -v |
-| API-FRONTIER-002 | 获取指定Channel的Frontier列表 | ✅ 已实现 | 1. 测试环境接口可访问；2. 持有合法Channel ID | 1. 调用接口，传入Channel ID筛选 | 返回success=True，data包含该Channel下的所有项目 | 1. 响应不为None；2. success=True；3. 列表中项目属于目标Channel | pytest tests/api/test_frontier.py::test_frontier_list_with_channel -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| API-FRONTIER-001 | 获取Frontier项目列表 | P1 | ✅ 已实现 | 1. 测试环境接口可访问 | 1. 调用获取Frontier列表接口 | 返回success=True，data包含所有Frontier项目列表 | 1. 响应不为None；2. success=True；3. data为列表格式 | pytest tests/api/test_frontier.py::test_frontier_list -v |
+| API-FRONTIER-002 | 获取指定Channel的Frontier列表 | P1 | ✅ 已实现 | 1. 测试环境接口可访问；2. 持有合法Channel ID | 1. 调用接口，传入Channel ID筛选 | 返回success=True，data包含该Channel下的所有项目 | 1. 响应不为None；2. success=True；3. 列表中项目属于目标Channel | pytest tests/api/test_frontier.py::test_frontier_list_with_channel -v |
 
 ---
 
@@ -68,20 +68,20 @@
 ### 6.1 登录场景测试
 路径：`tests/scenario/test_login_flow.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| SCEN-LOGIN-001 | 完整登录流程（正常场景） | ✅ 已实现 | 1. 测试环境正常；2. 持有合法私钥 | 1. 获取nonce；2. 钱包签名；3. 登录获取Token；4. 验证Token；5. 调用受保护接口 | 完整流程无异常，登录成功，受保护接口可正常访问 | 1. 登录接口success=True；2. Token验证有效；3. 受保护接口调用成功 | pytest tests/scenario/test_login_flow.py::test_complete_login_flow -v |
-| SCEN-LOGIN-002 | 登录流程（异常场景-非法私钥） | ⬜ 未实现 | 1. 测试环境正常；2. 持有非法私钥 | 1. 获取nonce；2. 用非法私钥签名；3. 调用登录接口 | 登录失败，返回success=False，提示私钥非法 | 1. 登录接口success=False；2. 错误信息包含“私钥非法”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_invalid_private_key -v |
-| SCEN-LOGIN-003 | 登录流程（边界场景-过期nonce） | ⬜ 未实现 | 1. 测试环境正常；2. 持有合法私钥；3. 获取过期nonce | 1. 使用过期nonce签名；2. 调用登录接口 | 登录失败，返回success=False，提示nonce过期 | 1. 登录接口success=False；2. 错误信息包含“nonce过期”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_expired_nonce -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| SCEN-LOGIN-001 | 完整登录流程（正常场景） | P0 | ✅ 已实现 | 1. 测试环境正常；2. 持有合法私钥 | 1. 获取nonce；2. 钱包签名；3. 登录获取Token；4. 验证Token；5. 调用受保护接口 | 完整流程无异常，登录成功，受保护接口可正常访问 | 1. 登录接口success=True；2. Token验证有效；3. 受保护接口调用成功 | pytest tests/scenario/test_login_flow.py::test_complete_login_flow -v |
+| SCEN-LOGIN-002 | 登录流程（异常场景-非法私钥） | P1 | ⬜ 未实现 | 1. 测试环境正常；2. 持有非法私钥 | 1. 获取nonce；2. 用非法私钥签名；3. 调用登录接口 | 登录失败，返回success=False，提示私钥非法 | 1. 登录接口success=False；2. 错误信息包含“私钥非法”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_invalid_private_key -v |
+| SCEN-LOGIN-003 | 登录流程（边界场景-过期nonce） | P1 | ⬜ 未实现 | 1. 测试环境正常；2. 持有合法私钥；3. 获取过期nonce | 1. 使用过期nonce签名；2. 调用登录接口 | 登录失败，返回success=False，提示nonce过期 | 1. 登录接口success=False；2. 错误信息包含“nonce过期”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_expired_nonce -v |
 
 
 ### 6.2 签到场景测试
 路径：`tests/scenario/test_checkin_flow.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-|----------|----------|----------|----------|------|----------|--------|----------|
-| SCEN-CHECKIN-001 | 签到流程（正常场景 - 未签到） | ✅ 已实现 | 1. 用户已登录；2. 当日未签到 | 1. 查询签到状态，确认未签到；2. 执行签到接口；3. 再次查询签到状态 | 签到成功，查询结果显示 is_check_in=true | 1. 签到前状态 is_check_in=false；2. 签到接口 success=True；3. 签到后状态 is_check_in=true | pytest tests/scenario/test_checkin_flow.py::test_checkin_and_verify_status -v |
-| SCEN-CHECKIN-002 | 签到流程（异常场景 - 重复签到） | ✅ 已实现 | 1. 用户已登录；2. 当日已签到 | 1. 查询签到状态，确认已签到；2. 再次执行签到接口；3. 验证签到状态 | 签到失败，返回错误信息提示重复签到，签到状态保持已签到 | 1. 重复签到接口 success=False；2. 错误信息包含重复/已签到关键词；3. 签到状态保持 true | pytest tests/scenario/test_checkin_flow.py::test_checkin_duplicate -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+|----------|----------|----------|----------|----------|------|----------|--------|----------|
+| SCEN-CHECKIN-001 | 签到流程（正常场景 - 未签到） | P0 | ✅ 已实现 | 1. 用户已登录；2. 当日未签到 | 1. 查询签到状态，确认未签到；2. 执行签到接口；3. 再次查询签到状态 | 签到成功，查询结果显示 is_check_in=true | 1. 签到前状态 is_check_in=false；2. 签到接口 success=True；3. 签到后状态 is_check_in=true | pytest tests/scenario/test_checkin_flow.py::test_checkin_and_verify_status -v |
+| SCEN-CHECKIN-002 | 签到流程（异常场景 - 重复签到） | P1 | ✅ 已实现 | 1. 用户已登录；2. 当日已签到 | 1. 查询签到状态，确认已签到；2. 再次执行签到接口；3. 验证签到状态 | 签到失败，返回错误信息提示重复签到，签到状态保持已签到 | 1. 重复签到接口 success=False；2. 错误信息包含重复/已签到关键词；3. 签到状态保持 true | pytest tests/scenario/test_checkin_flow.py::test_checkin_duplicate -v |
 
 ---
 
@@ -89,10 +89,10 @@
 ### 6.3 任务提交场景测试
 路径：`tests/scenario/test_submission_flow.py`
 
-| 用例编号 | 用例名称 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| SCEN-SUBMIT-001 | 任务提交（正常场景-合法数据） | ✅ 已实现 | 1. 用户已登录，Token有效；2. 测试任务数据（task_id/frontier_id）已准备 | 1. 调用提交任务接口；2. 调用提交历史查询接口；3. 验证记录存在 | 提交成功，历史列表中包含本次提交的task_id | 1. 提交接口success=True；2. 历史查询success=True；3. 找到目标task_id                               | pytest tests/scenario/test_submission_flow.py::test_submit_task_and_verify_in_history -v |
-| SCEN-SUBMIT-002 | 任务提交（异常场景-无效task_id） | ✅ 已实现 | 1. 用户已登录，Token有效；2. 准备无效task_id | 1. 调用提交任务接口，传入无效task_id；2. 查看接口返回 | 提交失败，返回success=False，提示task_id无效 | 1. 提交接口success=False；2. 错误信息包含“task is not exist”；3. 历史记录无该提交 4.返回的“errorCode”为6001, | pytest tests/scenario/test_submission_flow.py::test_submit_with_invalid_task_id -v |
+| 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| SCEN-SUBMIT-001 | 任务提交（正常场景-合法数据） | P0 | ✅ 已实现 | 1. 用户已登录，Token有效；2. 测试任务数据（task_id/frontier_id）已准备 | 1. 调用提交任务接口；2. 调用提交历史查询接口；3. 验证记录存在 | 提交成功，历史列表中包含本次提交的task_id | 1. 提交接口success=True；2. 历史查询success=True；3. 找到目标task_id                               | pytest tests/scenario/test_submission_flow.py::test_submit_task_and_verify_in_history -v |
+| SCEN-SUBMIT-002 | 任务提交（异常场景-无效task_id） | P1 | ✅ 已实现 | 1. 用户已登录，Token有效；2. 准备无效task_id | 1. 调用提交任务接口，传入无效task_id；2. 查看接口返回 | 提交失败，返回success=False，提示task_id无效 | 1. 提交接口success=False；2. 错误信息包含“task is not exist”；3. 历史记录无该提交 4.返回的“errorCode”为6001, | pytest tests/scenario/test_submission_flow.py::test_submit_with_invalid_task_id -v |
 
 ---
 
