@@ -2,7 +2,7 @@
 name: API Auto Test - Daily Schedule
 
 on:
-  # 定时执行：每天 UTC 1:00 (北京时间 9:00)
+  # 定时执行： 每天 UTC 1:00 (北京时间 9:00)
   schedule:
     - cron: '0 1 * * *'
   
