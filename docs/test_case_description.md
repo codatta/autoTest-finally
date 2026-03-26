@@ -31,6 +31,7 @@
 | API-USER-004 | 获取用户钱包信息 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 调用获取钱包信息接口 | 返回success=True，包含钱包地址、连接状态 | 1. 响应不为None；2. success=True；3. 包含wallet_address字段 | pytest tests/api/test_user.py::test_get_wallet_info -v |
 | API-USER-005 | Token有效性验证 | ✅ 已实现 | 1. 已获取登录Token | 1. 调用Token验证接口，传入Token | 返回success=True，验证Token有效 | 1. 响应不为None；2. success=True；3. 提示Token有效 | pytest tests/api/test_user.py::test_token_exists -v |
 | API-USER-006 | 无Token访问需要登录的接口 | ✅ 已实现 | 1. 测试环境正常；2. 未登录、无Token | 1. 调用需要登录的用户信息接口；2. 不携带任何Token | 返回401，错误信息：{"errorMessage": "The JWT token is invalid. Please verify that the token is correct."} | 1. 响应状态码=401；2. 返回指定errorMessage；3. 未返回用户数据 | pytest tests/api/test_user.py::test_access_without_token -v |
+| API-USER-007 | 修改用户名 | ✅ 已实现 | 1. 用户已登录，Token有效 | 1. 查询当前用户名；2. 生成随机十位数字用户名；3. 修改用户名为随机十位数字；4. 再次查询验证修改成功 | 修改成功，新用户名生效 | 1. 查询接口success=True；2. 修改接口success=True；3. 修改后查询到新用户名 | pytest tests/api/test_user.py::test_update_username -v |
 
 ---
 

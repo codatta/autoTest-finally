@@ -2,6 +2,8 @@
 用户接口测试用例
 """
 import pytest
+import random
+import string
 from core.http_client import HttpClient
 from api.user import UserApi
 
@@ -84,6 +86,73 @@ class TestUserApi:
 
         # 断言
         assert "data" in result or result.get("success") is not None
+
+    def test_update_username(self, user_api):
+        """
+        测试修改用户名
+
+        步骤：
+        1. 查询当前用户名
+        2. 生成随机十位数字的用户名
+        3. 修改用户名为随机十位数字
+        4. 再次查询验证修改成功
+
+        预期结果：修改成功，新用户名生效
+        """
+        print("\n=== 测试修改用户名 ===")
+
+        # --- 步骤 1: 查询当前用户名 ---
+        print("\n步骤1: 查询当前用户名...")
+        user_info = user_api.get_user_info()
+        print(f"用户信息: {user_info}")
+
+        assert user_info.get("success") is True, f"获取用户信息失败: {user_info}"
+
+        data = user_info.get("data", {})
+        # 用户名在 user_data 里面
+        user_data = data.get("user_data", {})
+        original_username = user_data.get("user_name") or user_data.get("userName") or user_data.get("username") or ""
+        print(f"原始用户名: {original_username}")
+
+        # --- 步骤 2: 生成随机十位数字的用户名 ---
+        print("\n步骤2: 生成随机十位数字的用户名...")
+        new_username = ''.join(random.choices(string.digits, k=10))
+        print(f"新用户名: {new_username}")
+
+        # --- 步骤 3: 修改用户名 ---
+        print("\n步骤3: 修改用户名...")
+        update_result = user_api.update_user_info("USER_NAME", new_username)
+        print(f"修改响应: {update_result}")
+
+        # 断言修改成功（网络问题除外）
+        if update_result.get("success") is False:
+            error_msg = update_result.get("errorMessage", "")
+            error_code = update_result.get("errorCode", 0)
+            # 网络相关错误码可以重试（如504超时等）
+            if error_code in [504, 502, 503] or "timeout" in error_msg.lower():
+                print(f"⚠️ 网络错误，重试一次...")
+                update_result = user_api.update_user_info("USER_NAME", new_username)
+                print(f"重试响应: {update_result}")
+
+        # 最终断言必须成功
+        assert update_result.get("success") is True, f"修改用户名失败: {update_result}"
+
+        # --- 步骤 4: 再次查询验证修改成功 ---
+        print("\n步骤4: 再次查询验证修改成功...")
+        user_info_after = user_api.get_user_info()
+        print(f"修改后用户信息: {user_info_after}")
+
+        data_after = user_info_after.get("data", {})
+        # 用户名在 user_data 里面
+        user_data_after = data_after.get("user_data", {})
+        updated_username = user_data_after.get("user_name") or user_data_after.get("userName") or user_data_after.get("username") or ""
+        print(f"修改后用户名: {updated_username}")
+
+        # 断言：用户名已更新
+        assert updated_username == new_username, \
+            f"用户名未修改成功，期望: {new_username}，实际: {updated_username}"
+
+        print("=== 测试通过：用户名修改成功 ===")
 
 
 class TestTokenAuth:

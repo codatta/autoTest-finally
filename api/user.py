@@ -50,3 +50,21 @@ class UserApi:
         """
         response = self.client.get("/api/v2/user/wallet/info")
         return response.json()
+
+    def update_user_info(self, update_key: str, update_value: str) -> Dict[str, Any]:
+        """
+        更新用户信息
+
+        Args:
+            update_key: 更新字段（如 USER_NAME, AVATAR 等）
+            update_value: 更新值
+
+        Returns:
+            API响应数据
+        """
+        payload = {
+            "update_key": update_key,
+            "update_value": update_value
+        }
+        response = self.client.post("/api/v2/user/update/info", json_data=payload)
+        return response.json()
