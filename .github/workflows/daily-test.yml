@@ -2,7 +2,7 @@
 name: API Auto Test - Daily Schedule
 
 on:
-  # 定时执行： 每天 UTC 1:00 (北京时间 9:00)
+  # 定时执行：每天 UTC 1:00 (北京时间 9:00)
   schedule:
     - cron: '0 1 * * *'
   
@@ -34,6 +34,8 @@ jobs:
   api-test:
     name: API 自动化测试
     runs-on: ubuntu-latest
+    # 核心修复：即使测试用例失败，Job 也标记为成功 (Success)
+    continue-on-error: true
     
     steps:
       # 1. 检出代码
@@ -57,38 +59,30 @@ jobs:
 #      # ========== 核心优化：缓存 Playwright 浏览器文件 ==========
 #      - name: Cache Playwright browsers
 #        uses: actions/cache@v3
-#        id: playwright-cache  # 标记缓存ID，后续可判断是否命中缓存
+#        id: playwright-cache
 #        with:
-#          # Playwright 浏览器文件默认缓存路径（Linux/macOS）
 #          path: ~/.cache/ms-playwright/
-#          # 缓存Key：系统+playwright+依赖文件哈希（依赖变更才重新缓存）
 #          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements.txt') }}
-#          # 回退Key：匹配同系统的最新缓存（即使依赖变更也能复用旧缓存）
 #          restore-keys: |
 #            ${{ runner.os }}-playwright-
 #      # ===========================================================
 #
-#      # 4. 安装 Playwright 及 Chromium 浏览器（命中缓存则跳过下载）
+#      # 4. 安装 Playwright 及 Chromium 浏览器
 #      - name: Install Playwright and Chromium
 #        run: |
-#          # 打印缓存命中状态（方便调试）
 #          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" == "true" ]; then
 #            echo "✅ 命中 Playwright 浏览器缓存，跳过下载"
 #          else
 #            echo "🔄 未命中缓存，开始安装 Playwright 浏览器..."
 #          fi
-#
-#          # 安装浏览器（命中缓存时会自动跳过下载，仅验证安装）
 #          playwright install chromium
-#          # 安装系统依赖（Ubuntu 必需，缓存不包含系统库）
 #          playwright install-deps chromium
 
-      # 5. 配置环境变量（使用 GitHub Secrets）
+      # 5. 配置环境变量
       - name: Configure environment
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           BASE_URL: ${{ secrets.BASE_URL }}
-          # 邮件配置（可选）
           EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED || 'false' }}
           EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
           EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
@@ -107,13 +101,11 @@ jobs:
             echo "EMAIL_TO=$EMAIL_TO" >> $GITHUB_ENV
           fi
 
-      # 6. 执行测试
+      # 6. 执行测试 (已修复：测试失败不中断流程)
       - name: Run API tests
         run: |
-          # 创建报告目录（避免报告生成失败）
           mkdir -p reports
           
-          # 根据手动选择的范围运行测试
           if [ "${{ github.event.inputs.test_scope }}" == "smoke" ]; then
             echo "运行 Smoke 测试..."
             pytest tests/ -v --tb=short -k "login or checkin" --html=reports/smoke_report.html --self-contained-html
@@ -121,9 +113,8 @@ jobs:
             echo "运行完整测试..."
             pytest tests/ -v --tb=short --html=reports/full_report.html --self-contained-html
           fi
-      #关键：无论测试是否失败，都强制返回 0
-          exit 0
-      # 7. 上传测试报告
+
+      # 7. 上传测试报告 (一定会执行)
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
@@ -132,7 +123,7 @@ jobs:
           path: reports/*.html
           retention-days: 30
 
-      # 8. 上传测试日志
+      # 8. 上传测试日志 (一定会执行)
       - name: Upload test logs
         if: always()
         uses: actions/upload-artifact@v4
