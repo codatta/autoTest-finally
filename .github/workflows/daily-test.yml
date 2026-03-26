@@ -18,23 +18,17 @@ on:
           - all
           - smoke
 
-  # 支持提交代码时触发（可选启用）
+  # 支持提交代码时触发（所有文件 + 所有分支）
   push:
     branches:
-      - main
-    paths:
-      - 'tests/**'
-      - 'api/**'
-      - 'core/**'
-      - 'config/**'
-      - 'conftest.py'
-      - 'requirements.txt'
+      - '**'  # 所有分支都触发
+    paths-ignore: []  # 不忽略任何文件
 
 jobs:
   api-test:
     name: API 自动化测试
     runs-on: ubuntu-latest
-    continue-on-error: true  # 核心：测试失败不标记工作流失败
+    continue-on-error: true  # 测试失败不标红
 
     steps:
       # 1. 检出代码
