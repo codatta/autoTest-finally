@@ -19,10 +19,10 @@ on:
           - smoke
 
   # 支持提交代码时触发（所有文件 + 所有分支）
-  push:
-    branches:
-      - '**'  # 所有分支都触发
-    paths-ignore: []  # 不忽略任何文件
+  # push:
+  #   branches:
+  #     - '**'  # 所有分支都触发
+  #   paths-ignore: []  # 不忽略任何文件
 
 jobs:
   api-test:
