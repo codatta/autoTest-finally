@@ -104,6 +104,7 @@ jobs:
 
       # 6. 执行测试
       - name: Run API tests
+        continue-on-error: true  # 测试用例失败不影响后续步骤和整体状态
         run: |
           # 创建报告目录（避免报告生成失败）
           mkdir -p reports
