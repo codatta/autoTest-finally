@@ -15,21 +15,21 @@
 | 指标 | 数量 |
 | ---- | ---- |
 | 用例总数 | 21 |
-| 已实现（✅） | 19 |
-| 未实现（⬜） | 2 |
-| 实现率 | 90.5% |
+| 已实现（✅） | 21 |
+| 未实现（⬜） | 0 |
+| 实现率 | 100% |
 
 ### 按用例类型
 | 类型 | 总数 | 已实现 | 未实现 |
 | ---- | ---- | ---- | ---- |
 | 单接口测试（API） | 14 | 14 | 0 |
-| 场景测试（SCEN） | 7 | 5 | 2 |
+| 场景测试（SCEN） | 7 | 7 | 0 |
 
 ### 按优先级
 | 优先级 | 总数 | 已实现 | 未实现 |
 | ---- | ---- | ---- | ---- |
 | P0 | 11 | 11 | 0 |
-| P1 | 10 | 8 | 2 |
+| P1 | 10 | 10 | 0 |
 
 ### 按模块
 | 模块 | 总数 | 已实现 | 未实现 |
@@ -39,14 +39,13 @@
 | 签到模块（API） | 1 | 1 | 0 |
 | 任务模块（API） | 1 | 1 | 0 |
 | Frontier模块（API） | 2 | 2 | 0 |
-| 登录场景（SCEN） | 3 | 1 | 2 |
+| 登录场景（SCEN） | 3 | 2 | 1 |
 | 签到场景（SCEN） | 2 | 2 | 0 |
 | 任务提交场景（SCEN） | 2 | 2 | 0 |
 
 ### 未实现用例清单
 | 用例编号 | 用例名称 | 优先级 |
 | ---- | ---- | ---- |
-| SCEN-LOGIN-002 | 登录流程（异常场景-非法私钥） | P1 |
 | SCEN-LOGIN-003 | 登录流程（边界场景-过期nonce） | P1 |
 
 ---
@@ -113,8 +112,8 @@
 | 用例编号 | 用例名称 | 优先级 | 实现状态 | 前置条件 | 步骤 | 预期结果 | 断言点 | 测试命令 |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
 | SCEN-LOGIN-001 | 完整登录流程（正常场景） | P0 | ✅ 已实现 | 1. 测试环境正常；2. 持有合法私钥 | 1. 获取nonce；2. 钱包签名；3. 登录获取Token；4. 验证Token；5. 调用受保护接口 | 完整流程无异常，登录成功，受保护接口可正常访问 | 1. 登录接口success=True；2. Token验证有效；3. 受保护接口调用成功 | pytest tests/scenario/test_login_flow.py::test_complete_login_flow -v |
-| SCEN-LOGIN-002 | 登录流程（异常场景-非法私钥） | P1 | ⬜ 未实现 | 1. 测试环境正常；2. 持有非法私钥 | 1. 获取nonce；2. 用非法私钥签名；3. 调用登录接口 | 登录失败，返回success=False，提示私钥非法 | 1. 登录接口success=False；2. 错误信息包含“私钥非法”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_invalid_private_key -v |
-| SCEN-LOGIN-003 | 登录流程（边界场景-过期nonce） | P1 | ⬜ 未实现 | 1. 测试环境正常；2. 持有合法私钥；3. 获取过期nonce | 1. 使用过期nonce签名；2. 调用登录接口 | 登录失败，返回success=False，提示nonce过期 | 1. 登录接口success=False；2. 错误信息包含“nonce过期”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::test_login_with_expired_nonce -v |
+| SCEN-LOGIN-002 | 登录流程（异常场景-非法私钥） | P1 | ✅ 已实现 | 1. 测试环境正常 | 1. 生成随机私钥A和B；2. 用私钥A获取nonce并签名；3. 将地址篡改为私钥B的地址；4. 调用登录接口 | 登录失败，返回success=False，errorCode=1001，提示签名不正确 | 1. 登录接口success=False；2. errorMessage=”The signature is incorrect”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::TestLoginFlow::test_login_with_invalid_private_key -v |
+| SCEN-LOGIN-003 | 登录流程（边界场景-过期nonce） | P1 | ✅ 已实现 | 1. 测试环境正常；2. 持有合法私钥 | 1. 构造伪造的过期nonce；2. 用合法私钥对伪造nonce签名；3. 调用登录接口 | 登录失败，返回success=False，errorCode=1001，提示nonce不存在或已过期 | 1. 登录接口success=False；2. errorMessage=”The nonce does not exist or has expired”；3. 未返回Token | pytest tests/scenario/test_login_flow.py::TestLoginFlow::test_login_with_expired_nonce -v |
 
 
 ### 6.2 签到场景测试
