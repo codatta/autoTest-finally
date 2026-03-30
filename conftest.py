@@ -290,39 +290,3 @@ def fresh_user_api(auth):
     """
     client = auth.get_client()
     return UserApi(client)
-
-# ============================================================================
-# UI 测试 fixtures (Playwright)
-# ============================================================================
-try:
-    from playwright.sync_api import sync_playwright, Browser, Page
-
-    @pytest.fixture(scope="session")
-    def browser():
-        """
-        获取浏览器实例（session级别）
-        """
-        print("\n=== 启动浏览器 ===")
-        with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=False,  # UI 测试需要看到浏览器
-                slow_mo=100      # 减慢操作速度便于观察
-            )
-            yield browser
-            browser.close()
-            print("=== 浏览器已关闭 ===")
-
-    @pytest.fixture
-    def page(browser):
-        """
-        获取新页面标签（function级别，每个测试用例独立）
-        """
-        page = browser.new_page()
-        # 设置默认超时
-        page.set_default_timeout(30000)
-        yield page
-        page.close()
-
-except ImportError:
-    # Playwright 未安装时跳过
-    pass
